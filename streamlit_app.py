@@ -11,6 +11,7 @@ from database import (
     get_orders,
     get_products,
     get_total_sales,
+    reduce_product_stock,
     seed_starting_products,
 )
 
@@ -175,7 +176,7 @@ st.markdown(
         font-weight: 900;
     }
 
-    label, .stTextInput label, .stNumberInput label, .stSelectbox label {
+    label, .stTextInput label, .stNumberInput label {
         color: #4c1d95 !important;
         font-weight: 800 !important;
     }
@@ -269,7 +270,7 @@ metric_one, metric_two, metric_three, metric_four = st.columns(4)
 
 metric_one.metric("Bread Types", total_products)
 metric_two.metric("Low Stock Items", len(low_stock_items))
-metric_three.metric("Inventory Value", f"GHS {inventory_value:,.2f}")
+metric_three.metric("Total Orders", total_orders)
 metric_four.metric("Total Sales", f"GHS {total_sales:,.2f}")
 
 
@@ -284,7 +285,7 @@ with left_column:
             <div class="owner-text">
                 Liberty Bakery is based in Mamprobi-Camara, Accra Ghana.
                 We focus on simple, fresh bread made with care:
-                butter bread, sugar bread, and tea bread.
+                butter bread, sugar bread, tea bread, and wheat/brown bread.
             </div>
         </div>
         """,
@@ -322,28 +323,78 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
 st.subheader("Record Customer Order")
 
-with st.form("bread_order_form"):
+with st.form("multi_bread_order_form"):
     customer_name = st.text_input("Customer Name")
-    selected_product = st.selectbox("Bread Type", df["Product"].tolist())
-    quantity = st.number_input("Quantity", min_value=1, step=1)
 
-    order_submitted = st.form_submit_button("Save Order")
+    st.write(
+        "Enter the quantity for each bread type. "
+        "Leave it as 0 if the customer does not want that bread."
+    )
+
+    order_items = []
+    running_total = 0
+    stock_errors = []
+
+    for product in df.itertuples():
+        quantity = st.number_input(
+            f"{product.Product} - GHS {product.Price:,.2f} | Stock: {product.Stock}",
+            min_value=0,
+            step=1,
+            key=f"quantity_{product.ID}"
+        )
+
+        if quantity > product.Stock:
+            stock_errors.append(
+                f"{product.Product}: requested {quantity}, but only {product.Stock} available."
+            )
+
+        if quantity > 0:
+            item_total = product.Price * quantity
+
+            order_items.append(
+                {
+                    "product_id": product.ID,
+                    "product": product.Product,
+                    "quantity": quantity,
+                    "total": item_total,
+                }
+            )
+
+            running_total += item_total
+
+    st.info(f"Order Total: GHS {running_total:,.2f}")
+
+    order_submitted = st.form_submit_button("Save Full Order")
 
     if order_submitted:
-        product_row = df[df["Product"] == selected_product].iloc[0]
-        price = product_row["Price"]
-        total = price * quantity
-
         if customer_name.strip() == "":
             customer_name = "Customer"
 
-        add_order(customer_name.strip(), selected_product, quantity, total)
+        if len(order_items) == 0:
+            st.error("Please enter at least one bread quantity before saving.")
+        elif len(stock_errors) > 0:
+            st.error("Some quantities are more than the available stock:")
+            for error in stock_errors:
+                st.write(error)
+        else:
+            for item in order_items:
+                add_order(
+                    customer_name.strip(),
+                    item["product"],
+                    item["quantity"],
+                    item["total"]
+                )
 
-        st.success(
-            f"Order saved: {customer_name} ordered {quantity} x {selected_product}. "
-            f"Total: GHS {total:,.2f}"
-        )
-        st.rerun()
+                reduce_product_stock(
+                    item["product_id"],
+                    item["quantity"]
+                )
+
+            st.success(
+                f"Order saved for {customer_name}. "
+                f"Total: GHS {running_total:,.2f}"
+            )
+            st.rerun()
 
 st.markdown("</div>", unsafe_allow_html=True)
 

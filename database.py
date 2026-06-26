@@ -51,11 +51,11 @@ def seed_starting_products():
 
     if product_count == 0:
         starting_products = [
-    ("Butter Bread", "Bread", 3.50, 25),
-    ("Sugar Bread", "Bread", 3.00, 18),
-    ("Tea Bread", "Bread", 2.75, 12),
-    ("Wheat/Brown Bread", "Bread", 4.00, 20),
-]
+            ("Butter Bread", "Bread", 3.50, 25),
+            ("Sugar Bread", "Bread", 3.00, 18),
+            ("Tea Bread", "Bread", 2.75, 12),
+            ("Wheat/Brown Bread", "Bread", 4.00, 20),
+        ]
 
         cursor.executemany(
             """
@@ -115,6 +115,23 @@ def add_order(customer_name, product, quantity, total):
         VALUES (?, ?, ?, ?, ?)
         """,
         (customer_name, product, quantity, total, order_date),
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def reduce_product_stock(product_id, quantity):
+    connection = connect_to_database()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        UPDATE products
+        SET stock = stock - ?
+        WHERE id = ?
+        """,
+        (quantity, product_id),
     )
 
     connection.commit()
