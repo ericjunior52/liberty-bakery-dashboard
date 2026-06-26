@@ -9,14 +9,26 @@ st.set_page_config(
 )
 
 
+def load_starting_products():
+    return [
+        {"Product": "Butter Bread", "Category": "Bread", "Price": 3.50, "Stock": 25},
+        {"Product": "Sugar Bread", "Category": "Bread", "Price": 3.00, "Stock": 18},
+        {"Product": "Tea Bread", "Category": "Bread", "Price": 2.75, "Stock": 12},
+    ]
+
+
+if "products" not in st.session_state:
+    st.session_state.products = load_starting_products()
+
+
 st.markdown(
     """
-    <style>
+      <style>
     .stApp {
         background:
-            radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 28%),
-            linear-gradient(135deg, #fff1f7 0%, #ffe4ef 45%, #fce7f3 100%);
-        color: #3b1f2b;
+            radial-gradient(circle at top left, rgba(255, 255, 255, 0.90), transparent 28%),
+            linear-gradient(135deg, #f5f0ff 0%, #eadcff 42%, #d8b4fe 100%);
+        color: #2e1065;
     }
 
     .block-container {
@@ -27,10 +39,10 @@ st.markdown(
 
     .hero {
         background: rgba(255, 255, 255, 0.82);
-        border: 1px solid rgba(190, 24, 93, 0.14);
+        border: 1px solid rgba(109, 40, 217, 0.18);
         border-radius: 24px;
         padding: 30px;
-        box-shadow: 0 18px 45px rgba(190, 24, 93, 0.14);
+        box-shadow: 0 18px 45px rgba(109, 40, 217, 0.16);
         margin-bottom: 28px;
     }
 
@@ -45,52 +57,52 @@ st.markdown(
         width: 82px;
         height: 82px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #be185d, #f472b6);
+        background: linear-gradient(135deg, #6d28d9, #a855f7);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 28px;
         font-weight: 900;
-        box-shadow: 0 12px 28px rgba(190, 24, 93, 0.25);
-        border: 4px solid #fff7fb;
+        box-shadow: 0 12px 28px rgba(109, 40, 217, 0.28);
+        border: 4px solid #faf5ff;
     }
 
     .logo-title {
         font-size: 3rem;
         font-weight: 900;
-        color: #831843;
+        color: #581c87;
         margin: 0;
         line-height: 1.05;
     }
 
     .logo-subtitle {
-        color: #6b213c;
+        color: #4c1d95;
         font-size: 1.08rem;
         margin-top: 8px;
         margin-bottom: 0;
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(190, 24, 93, 0.14);
+        background: rgba(255, 255, 255, 0.80);
+        border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 20px;
         padding: 22px;
-        box-shadow: 0 12px 30px rgba(190, 24, 93, 0.10);
+        box-shadow: 0 12px 30px rgba(109, 40, 217, 0.12);
         margin-bottom: 22px;
     }
 
     [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.84);
-        border: 1px solid rgba(190, 24, 93, 0.14);
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 18px;
         padding: 18px;
-        box-shadow: 0 10px 28px rgba(190, 24, 93, 0.10);
+        box-shadow: 0 10px 28px rgba(109, 40, 217, 0.12);
     }
 
     .stButton button,
     .stFormSubmitButton button {
-        background: linear-gradient(135deg, #be185d, #ec4899);
+        background: linear-gradient(135deg, #6d28d9, #9333ea);
         color: white;
         border: none;
         border-radius: 12px;
@@ -102,7 +114,7 @@ st.markdown(
     .stFormSubmitButton button:hover {
         color: white;
         border: none;
-        background: linear-gradient(135deg, #9d174d, #db2777);
+        background: linear-gradient(135deg, #5b21b6, #7e22ce);
     }
 
     @media (max-width: 700px) {
@@ -126,13 +138,7 @@ st.markdown(
 )
 
 
-products = [
-    {"Product": "Butter Bread", "Category": "Bread", "Price": 3.50, "Stock": 25},
-    {"Product": "Sugar Bread", "Category": "Bread", "Price": 3.00, "Stock": 18},
-    {"Product": "Tea Bread", "Category": "Bread", "Price": 2.75, "Stock": 12},
-]
-
-df = pd.DataFrame(products)
+df = pd.DataFrame(st.session_state.products)
 df["Inventory Value"] = df["Price"] * df["Stock"]
 
 low_stock_items = df[df["Stock"] <= 10]
@@ -166,6 +172,34 @@ metric_three.metric("Inventory Value", f"${inventory_value:,.2f}")
 
 
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
+st.subheader("Add New Bread Product")
+
+with st.form("add_bread_form"):
+    new_product = st.text_input("Bread Name")
+    new_price = st.number_input("Price", min_value=0.0, step=0.50)
+    new_stock = st.number_input("Stock Quantity", min_value=0, step=1)
+
+    add_submitted = st.form_submit_button("Add Bread")
+
+    if add_submitted:
+        if new_product.strip() == "":
+            st.error("Please enter a bread name.")
+        else:
+            bread = {
+                "Product": new_product.strip(),
+                "Category": "Bread",
+                "Price": new_price,
+                "Stock": new_stock,
+            }
+
+            st.session_state.products.append(bread)
+            st.success(f"{new_product} has been added.")
+            st.rerun()
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+
+st.markdown('<div class="section-card">', unsafe_allow_html=True)
 st.subheader("Bread Catalog")
 st.dataframe(df, width="stretch")
 st.markdown("</div>", unsafe_allow_html=True)
@@ -179,9 +213,9 @@ with st.form("bread_order_form"):
     selected_product = st.selectbox("Bread Type", df["Product"].tolist())
     quantity = st.number_input("Quantity", min_value=1, step=1)
 
-    submitted = st.form_submit_button("Calculate Order")
+    order_submitted = st.form_submit_button("Calculate Order")
 
-    if submitted:
+    if order_submitted:
         product_row = df[df["Product"] == selected_product].iloc[0]
         price = product_row["Price"]
         total = price * quantity
