@@ -4,7 +4,15 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from database import add_product, create_tables, get_products, seed_starting_products
+from database import (
+    add_order,
+    add_product,
+    create_tables,
+    get_orders,
+    get_products,
+    get_total_sales,
+    seed_starting_products,
+)
 
 
 st.set_page_config(
@@ -86,7 +94,6 @@ st.markdown(
         line-height: 1.05;
         letter-spacing: 1px;
         font-family: Georgia, "Times New Roman", serif;
-        text-transform: none;
         text-shadow:
             0 1px 0 #d8b4fe,
             0 2px 0 #c084fc,
@@ -114,21 +121,12 @@ st.markdown(
         text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
     }
 
-    .section-card {
-        background: rgba(255, 255, 255, 0.88);
+    .section-card, .owner-card {
+        background: rgba(255, 255, 255, 0.90);
         border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 20px;
         padding: 22px;
         box-shadow: 0 12px 30px rgba(109, 40, 217, 0.12);
-        margin-bottom: 22px;
-    }
-
-    .owner-card {
-        background: rgba(255, 255, 255, 0.90);
-        border: 1px solid rgba(109, 40, 217, 0.18);
-        border-radius: 22px;
-        padding: 18px;
-        box-shadow: 0 16px 38px rgba(109, 40, 217, 0.14);
         margin-bottom: 22px;
     }
 
@@ -182,14 +180,6 @@ st.markdown(
         font-weight: 800 !important;
     }
 
-    .stTextInput input,
-    .stNumberInput input,
-    .stSelectbox div[data-baseweb="select"] {
-        background-color: rgba(255, 255, 255, 0.94);
-        color: #2e1065;
-        border-radius: 12px;
-    }
-
     .stButton button,
     .stFormSubmitButton button {
         background: linear-gradient(135deg, #6d28d9, #9333ea);
@@ -233,10 +223,17 @@ st.markdown(
 
 
 products = get_products()
+orders = get_orders()
+total_sales = get_total_sales()
 
 df = pd.DataFrame(
     products,
     columns=["ID", "Product", "Category", "Price", "Stock"]
+)
+
+orders_df = pd.DataFrame(
+    orders,
+    columns=["ID", "Customer Name", "Product", "Quantity", "Total", "Order Date"]
 )
 
 df["Inventory Value"] = df["Price"] * df["Stock"]
@@ -244,6 +241,7 @@ df["Inventory Value"] = df["Price"] * df["Stock"]
 low_stock_items = df[df["Stock"] <= 10]
 total_products = len(df)
 inventory_value = df["Inventory Value"].sum()
+total_orders = len(orders_df)
 
 
 st.markdown(
@@ -267,11 +265,12 @@ st.markdown(
 )
 
 
-metric_one, metric_two, metric_three = st.columns(3)
+metric_one, metric_two, metric_three, metric_four = st.columns(4)
 
 metric_one.metric("Bread Types", total_products)
 metric_two.metric("Low Stock Items", len(low_stock_items))
 metric_three.metric("Inventory Value", f"GHS {inventory_value:,.2f}")
+metric_four.metric("Total Sales", f"GHS {total_sales:,.2f}")
 
 
 left_column, right_column = st.columns([1, 1.4])
@@ -307,13 +306,7 @@ with right_column:
             if new_product.strip() == "":
                 st.error("Please enter a bread name.")
             else:
-                add_product(
-                    new_product.strip(),
-                    "Bread",
-                    new_price,
-                    new_stock
-                )
-
+                add_product(new_product.strip(), "Bread", new_price, new_stock)
                 st.success(f"{new_product} has been added.")
                 st.rerun()
 
@@ -327,14 +320,14 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.subheader("Quick Order Calculator")
+st.subheader("Record Customer Order")
 
 with st.form("bread_order_form"):
     customer_name = st.text_input("Customer Name")
     selected_product = st.selectbox("Bread Type", df["Product"].tolist())
     quantity = st.number_input("Quantity", min_value=1, step=1)
 
-    order_submitted = st.form_submit_button("Calculate Order")
+    order_submitted = st.form_submit_button("Save Order")
 
     if order_submitted:
         product_row = df[df["Product"] == selected_product].iloc[0]
@@ -344,10 +337,24 @@ with st.form("bread_order_form"):
         if customer_name.strip() == "":
             customer_name = "Customer"
 
+        add_order(customer_name.strip(), selected_product, quantity, total)
+
         st.success(
-            f"{customer_name} ordered {quantity} x {selected_product}. "
+            f"Order saved: {customer_name} ordered {quantity} x {selected_product}. "
             f"Total: GHS {total:,.2f}"
         )
+        st.rerun()
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+
+st.markdown('<div class="section-card">', unsafe_allow_html=True)
+st.subheader("Recent Orders")
+
+if orders_df.empty:
+    st.info("No orders have been recorded yet.")
+else:
+    st.dataframe(orders_df, width="stretch")
 
 st.markdown("</div>", unsafe_allow_html=True)
 

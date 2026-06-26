@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 
 DATABASE_NAME = "bakery.db"
@@ -20,6 +21,19 @@ def create_tables():
             category TEXT NOT NULL,
             price REAL NOT NULL,
             stock INTEGER NOT NULL
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_name TEXT NOT NULL,
+            product TEXT NOT NULL,
+            quantity INTEGER NOT NULL,
+            total REAL NOT NULL,
+            order_date TEXT NOT NULL
         )
         """
     )
@@ -47,7 +61,7 @@ def seed_starting_products():
             INSERT INTO products (product, category, price, stock)
             VALUES (?, ?, ?, ?)
             """,
-            starting_products
+            starting_products,
         )
 
     connection.commit()
@@ -63,7 +77,7 @@ def add_product(product, category, price, stock):
         INSERT INTO products (product, category, price, stock)
         VALUES (?, ?, ?, ?)
         """,
-        (product, category, price, stock)
+        (product, category, price, stock),
     )
 
     connection.commit()
@@ -86,3 +100,54 @@ def get_products():
     connection.close()
 
     return products
+
+
+def add_order(customer_name, product, quantity, total):
+    connection = connect_to_database()
+    cursor = connection.cursor()
+
+    order_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute(
+        """
+        INSERT INTO orders (customer_name, product, quantity, total, order_date)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (customer_name, product, quantity, total, order_date),
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_orders():
+    connection = connect_to_database()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT id, customer_name, product, quantity, total, order_date
+        FROM orders
+        ORDER BY id DESC
+        """
+    )
+
+    orders = cursor.fetchall()
+    connection.close()
+
+    return orders
+
+
+def get_total_sales():
+    connection = connect_to_database()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT SUM(total) FROM orders")
+    total_sales = cursor.fetchone()[0]
+
+    connection.close()
+
+    if total_sales is None:
+        return 0
+
+    return total_sales
