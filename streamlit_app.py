@@ -4,20 +4,14 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from database import add_product, create_tables, get_products, seed_starting_products
+
 
 st.set_page_config(
     page_title="Liberty Bakery Dashboard",
     page_icon="LB",
     layout="wide"
 )
-
-
-def load_starting_products():
-    return [
-        {"Product": "Butter Bread", "Category": "Bread", "Price": 3.50, "Stock": 25},
-        {"Product": "Sugar Bread", "Category": "Bread", "Price": 3.00, "Stock": 18},
-        {"Product": "Tea Bread", "Category": "Bread", "Price": 2.75, "Stock": 12},
-    ]
 
 
 def image_to_base64(image_path):
@@ -29,8 +23,8 @@ def image_to_base64(image_path):
     return base64.b64encode(path.read_bytes()).decode()
 
 
-if "products" not in st.session_state:
-    st.session_state.products = load_starting_products()
+create_tables()
+seed_starting_products()
 
 
 hero_image = image_to_base64("assets/bakery_couple.png")
@@ -238,7 +232,13 @@ st.markdown(
 )
 
 
-df = pd.DataFrame(st.session_state.products)
+products = get_products()
+
+df = pd.DataFrame(
+    products,
+    columns=["ID", "Product", "Category", "Price", "Stock"]
+)
+
 df["Inventory Value"] = df["Price"] * df["Stock"]
 
 low_stock_items = df[df["Stock"] <= 10]
@@ -307,14 +307,13 @@ with right_column:
             if new_product.strip() == "":
                 st.error("Please enter a bread name.")
             else:
-                bread = {
-                    "Product": new_product.strip(),
-                    "Category": "Bread",
-                    "Price": new_price,
-                    "Stock": new_stock,
-                }
+                add_product(
+                    new_product.strip(),
+                    "Bread",
+                    new_price,
+                    new_stock
+                )
 
-                st.session_state.products.append(bread)
                 st.success(f"{new_product} has been added.")
                 st.rerun()
 
