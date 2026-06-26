@@ -96,6 +96,15 @@ st.markdown(
     .logo-subtitle {
         color: #fdf4ff;
         font-size: 1.35rem;
+        font-weight: 800;
+        margin-top: 8px;
+        margin-bottom: 0;
+        text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero-details {
+        color: #f5e8ff;
+        font-size: 1rem;
         font-weight: 700;
         margin-top: 8px;
         margin-bottom: 0;
@@ -103,7 +112,7 @@ st.markdown(
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.82);
+        background: rgba(255, 255, 255, 0.88);
         border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 20px;
         padding: 22px;
@@ -112,7 +121,7 @@ st.markdown(
     }
 
     .owner-card {
-        background: rgba(255, 255, 255, 0.86);
+        background: rgba(255, 255, 255, 0.90);
         border: 1px solid rgba(109, 40, 217, 0.18);
         border-radius: 22px;
         padding: 18px;
@@ -143,11 +152,39 @@ st.markdown(
     }
 
     [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(109, 40, 217, 0.16);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(109, 40, 217, 0.18);
         border-radius: 18px;
         padding: 18px;
         box-shadow: 0 10px 28px rgba(109, 40, 217, 0.12);
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: #581c87;
+        font-weight: 900;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #2e1065;
+        font-weight: 900;
+    }
+
+    h2, h3 {
+        color: #2e1065;
+        font-weight: 900;
+    }
+
+    label, .stTextInput label, .stNumberInput label, .stSelectbox label {
+        color: #4c1d95 !important;
+        font-weight: 800 !important;
+    }
+
+    .stTextInput input,
+    .stNumberInput input,
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: rgba(255, 255, 255, 0.94);
+        color: #2e1065;
+        border-radius: 12px;
     }
 
     .stButton button,
@@ -156,7 +193,7 @@ st.markdown(
         color: white;
         border: none;
         border-radius: 12px;
-        font-weight: 700;
+        font-weight: 800;
         padding: 0.6rem 1rem;
     }
 
@@ -204,7 +241,7 @@ st.markdown(
     f"""
     <div class="hero" style="
         background-image:
-            linear-gradient(90deg, rgba(46, 16, 101, 0.88), rgba(88, 28, 135, 0.54)),
+            linear-gradient(90deg, rgba(46, 16, 101, 0.84), rgba(88, 28, 135, 0.46)),
             url('data:image/png;base64,{hero_image}');
     ">
         <div class="logo-row">
@@ -212,6 +249,7 @@ st.markdown(
             <div>
                 <h1 class="logo-title">Liberty Bakery</h1>
                 <p class="logo-subtitle">Pure Flour-ishing.</p>
+                <p class="hero-details">Mamprobi-Camara, Accra Ghana | Phone number coming soon</p>
             </div>
         </div>
     </div>
@@ -224,7 +262,7 @@ metric_one, metric_two, metric_three = st.columns(3)
 
 metric_one.metric("Bread Types", total_products)
 metric_two.metric("Low Stock Items", len(low_stock_items))
-metric_three.metric("Inventory Value", f"${inventory_value:,.2f}")
+metric_three.metric("Inventory Value", f"GHS {inventory_value:,.2f}")
 
 
 left_column, right_column = st.columns([1, 1.4])
@@ -236,7 +274,8 @@ with left_column:
             <img class="owner-image" src="data:image/png;base64,{owner_image}" />
             <div class="owner-title">Made Fresh With Care</div>
             <div class="owner-text">
-                Liberty Bakery focuses on simple, fresh bread made with care:
+                Liberty Bakery is based in Mamprobi-Camara, Accra Ghana.
+                We focus on simple, fresh bread made with care:
                 butter bread, sugar bread, and tea bread.
             </div>
         </div>
@@ -250,7 +289,7 @@ with right_column:
 
     with st.form("add_bread_form"):
         new_product = st.text_input("Bread Name")
-        new_price = st.number_input("Price", min_value=0.0, step=0.50)
+        new_price = st.number_input("Price (GHS)", min_value=0.0, step=0.50)
         new_stock = st.number_input("Stock Quantity", min_value=0, step=1)
 
         add_submitted = st.form_submit_button("Add Bread")
@@ -299,7 +338,7 @@ with st.form("bread_order_form"):
 
         st.success(
             f"{customer_name} ordered {quantity} x {selected_product}. "
-            f"Total: ${total:,.2f}"
+            f"Total: GHS {total:,.2f}"
         )
 
 st.markdown("</div>", unsafe_allow_html=True)
