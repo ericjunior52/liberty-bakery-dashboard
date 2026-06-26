@@ -51,10 +51,11 @@ def seed_starting_products():
 
     if product_count == 0:
         starting_products = [
-            ("Butter Bread", "Bread", 3.50, 25),
-            ("Sugar Bread", "Bread", 3.00, 18),
-            ("Tea Bread", "Bread", 2.75, 12),
-        ]
+    ("Butter Bread", "Bread", 3.50, 25),
+    ("Sugar Bread", "Bread", 3.00, 18),
+    ("Tea Bread", "Bread", 2.75, 12),
+    ("Wheat/Brown Bread", "Bread", 4.00, 20),
+]
 
         cursor.executemany(
             """
