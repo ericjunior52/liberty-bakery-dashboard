@@ -85,12 +85,21 @@ st.markdown(
     }
 
     .logo-title {
-        font-size: 3.3rem;
-        font-weight: 900;
+        font-size: 3.6rem;
+        font-weight: 1000;
         color: #ffffff;
         margin: 0;
         line-height: 1.05;
-        text-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+        letter-spacing: 1px;
+        font-family: Georgia, "Times New Roman", serif;
+        text-transform: none;
+        text-shadow:
+            0 1px 0 #d8b4fe,
+            0 2px 0 #c084fc,
+            0 3px 0 #a855f7,
+            0 4px 0 #7e22ce,
+            0 8px 18px rgba(46, 16, 101, 0.75),
+            0 14px 34px rgba(0, 0, 0, 0.55);
     }
 
     .logo-subtitle {
@@ -211,7 +220,7 @@ st.markdown(
         }
 
         .logo-title {
-            font-size: 2.2rem;
+            font-size: 2.45rem;
         }
 
         .real-logo {
