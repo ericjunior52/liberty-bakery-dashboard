@@ -1,3 +1,6 @@
+import base64
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -17,13 +20,27 @@ def load_starting_products():
     ]
 
 
+def image_to_base64(image_path):
+    path = Path(image_path)
+
+    if not path.exists():
+        return ""
+
+    return base64.b64encode(path.read_bytes()).decode()
+
+
 if "products" not in st.session_state:
     st.session_state.products = load_starting_products()
 
 
+hero_image = image_to_base64("assets/bakery_couple.png")
+logo_image = image_to_base64("assets/liberty_logo.png")
+owner_image = image_to_base64("assets/bakery_owner.png")
+
+
 st.markdown(
     """
-      <style>
+    <style>
     .stApp {
         background:
             radial-gradient(circle at top left, rgba(255, 255, 255, 0.90), transparent 28%),
@@ -38,12 +55,17 @@ st.markdown(
     }
 
     .hero {
-        background: rgba(255, 255, 255, 0.82);
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
         border: 1px solid rgba(109, 40, 217, 0.18);
-        border-radius: 24px;
-        padding: 30px;
-        box-shadow: 0 18px 45px rgba(109, 40, 217, 0.16);
+        border-radius: 26px;
+        padding: 32px;
+        box-shadow: 0 24px 55px rgba(46, 16, 101, 0.24);
         margin-bottom: 28px;
+        overflow: hidden;
     }
 
     .logo-row {
@@ -53,38 +75,35 @@ st.markdown(
         flex-wrap: wrap;
     }
 
-    .logo-badge {
-        width: 82px;
-        height: 82px;
+    .real-logo {
+        width: 112px;
+        height: 112px;
+        object-fit: cover;
         border-radius: 50%;
-        background: linear-gradient(135deg, #6d28d9, #a855f7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 28px;
-        font-weight: 900;
-        box-shadow: 0 12px 28px rgba(109, 40, 217, 0.28);
-        border: 4px solid #faf5ff;
+        box-shadow: 0 18px 38px rgba(46, 16, 101, 0.45);
+        border: 4px solid rgba(255, 255, 255, 0.85);
     }
 
     .logo-title {
-        font-size: 3rem;
+        font-size: 3.3rem;
         font-weight: 900;
-        color: #581c87;
+        color: #ffffff;
         margin: 0;
         line-height: 1.05;
+        text-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
     }
 
     .logo-subtitle {
-        color: #4c1d95;
-        font-size: 1.08rem;
+        color: #fdf4ff;
+        font-size: 1.35rem;
+        font-weight: 700;
         margin-top: 8px;
         margin-bottom: 0;
+        text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.80);
+        background: rgba(255, 255, 255, 0.82);
         border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 20px;
         padding: 22px;
@@ -92,8 +111,39 @@ st.markdown(
         margin-bottom: 22px;
     }
 
-    [data-testid="stMetric"] {
+    .owner-card {
         background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(109, 40, 217, 0.18);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: 0 16px 38px rgba(109, 40, 217, 0.14);
+        margin-bottom: 22px;
+    }
+
+    .owner-image {
+        width: 100%;
+        height: 420px;
+        object-fit: cover;
+        border-radius: 18px;
+        box-shadow: 0 16px 35px rgba(46, 16, 101, 0.18);
+    }
+
+    .owner-title {
+        color: #581c87;
+        font-size: 1.5rem;
+        font-weight: 900;
+        margin-top: 16px;
+        margin-bottom: 6px;
+    }
+
+    .owner-text {
+        color: #4c1d95;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.88);
         border: 1px solid rgba(109, 40, 217, 0.16);
         border-radius: 18px;
         padding: 18px;
@@ -118,18 +168,22 @@ st.markdown(
     }
 
     @media (max-width: 700px) {
+        .hero {
+            min-height: 260px;
+            padding: 22px;
+        }
+
         .logo-title {
             font-size: 2.2rem;
         }
 
-        .logo-badge {
-            width: 68px;
-            height: 68px;
-            font-size: 23px;
+        .real-logo {
+            width: 78px;
+            height: 78px;
         }
 
-        .hero {
-            padding: 22px;
+        .owner-image {
+            height: 320px;
         }
     }
     </style>
@@ -147,15 +201,17 @@ inventory_value = df["Inventory Value"].sum()
 
 
 st.markdown(
-    """
-    <div class="hero">
+    f"""
+    <div class="hero" style="
+        background-image:
+            linear-gradient(90deg, rgba(46, 16, 101, 0.88), rgba(88, 28, 135, 0.54)),
+            url('data:image/png;base64,{hero_image}');
+    ">
         <div class="logo-row">
-            <div class="logo-badge">LB</div>
+            <img class="real-logo" src="data:image/png;base64,{logo_image}" />
             <div>
                 <h1 class="logo-title">Liberty Bakery</h1>
-                <p class="logo-subtitle">
-                    A mobile-friendly dashboard for bread products, stock, and customer orders.
-                </p>
+                <p class="logo-subtitle">Pure Flour-ishing.</p>
             </div>
         </div>
     </div>
@@ -171,32 +227,50 @@ metric_two.metric("Low Stock Items", len(low_stock_items))
 metric_three.metric("Inventory Value", f"${inventory_value:,.2f}")
 
 
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-st.subheader("Add New Bread Product")
+left_column, right_column = st.columns([1, 1.4])
 
-with st.form("add_bread_form"):
-    new_product = st.text_input("Bread Name")
-    new_price = st.number_input("Price", min_value=0.0, step=0.50)
-    new_stock = st.number_input("Stock Quantity", min_value=0, step=1)
+with left_column:
+    st.markdown(
+        f"""
+        <div class="owner-card">
+            <img class="owner-image" src="data:image/png;base64,{owner_image}" />
+            <div class="owner-title">Made Fresh With Care</div>
+            <div class="owner-text">
+                Liberty Bakery focuses on simple, fresh bread made with care:
+                butter bread, sugar bread, and tea bread.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    add_submitted = st.form_submit_button("Add Bread")
+with right_column:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.subheader("Add New Bread Product")
 
-    if add_submitted:
-        if new_product.strip() == "":
-            st.error("Please enter a bread name.")
-        else:
-            bread = {
-                "Product": new_product.strip(),
-                "Category": "Bread",
-                "Price": new_price,
-                "Stock": new_stock,
-            }
+    with st.form("add_bread_form"):
+        new_product = st.text_input("Bread Name")
+        new_price = st.number_input("Price", min_value=0.0, step=0.50)
+        new_stock = st.number_input("Stock Quantity", min_value=0, step=1)
 
-            st.session_state.products.append(bread)
-            st.success(f"{new_product} has been added.")
-            st.rerun()
+        add_submitted = st.form_submit_button("Add Bread")
 
-st.markdown("</div>", unsafe_allow_html=True)
+        if add_submitted:
+            if new_product.strip() == "":
+                st.error("Please enter a bread name.")
+            else:
+                bread = {
+                    "Product": new_product.strip(),
+                    "Category": "Bread",
+                    "Price": new_price,
+                    "Stock": new_stock,
+                }
+
+                st.session_state.products.append(bread)
+                st.success(f"{new_product} has been added.")
+                st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
